@@ -380,7 +380,7 @@ namespace CustomizeLib.BepInEx
                     break;
                 case BuffType.UnlockPlant:
                     i = CustomBuffStartID + CustomUnlockBuffs.Count;
-                    if (buffID == -1) i = buffID;
+                    if (buffID != -1) i = buffID;
                     CustomUnlockBuffs.Add(i, (icon, text, cost));
                     TravelDictionary.unlocksText.Add((TravelUnlocks)i, text);
                     break;
