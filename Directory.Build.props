@@ -7,4 +7,21 @@
 	<BepResPath>F:\vsrepos\Customizelib\res\BepInEx</BepResPath>
 	<MelonResPath>F:\vsrepos\Customizelib\res\MelonLoader</MelonResPath>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- 移除所有DLL引用（保留ProjectReference） -->
+    <Reference Remove="@(Reference)" />
+    
+    <!-- 添加全局BepInEx引用 -->
+    <Reference Include="F:\vsrepos\CustomizeLib\lib\BepInEx\libs\*.dll" 
+               Exclude="F:\vsrepos\CustomizeLib\lib\BepInEx\libs\dobby.dll">
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+  <Exec Command="COPY &quot;$(TargetPath)&quot; &quot;$(BepResPath)&quot;" />
+  <Exec Command="COPY &quot;$(TargetPath)&quot; &quot;$(InnerPath)&quot;" />
+</Target>
+	<PropertyGroup>
+		<NoWarn>$(NoWarn);MSB3277</NoWarn>
+	</PropertyGroup>
 </Project>

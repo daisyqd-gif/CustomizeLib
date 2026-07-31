@@ -1,16 +1,20 @@
 // #define DEBUG_FEATURE__ENABLE_MULTI_LEVEL_BUFF // 启用多级词条
 
 using AlmanacData;
+using Core;
 using CustomizeLib.BepInEx.ExtensionData.Basic;
+using CustomizeLib.BepInEx.Internal;
+using CustomizeLib.BepInEx.UnmanagedTools;
+using GameLevel;
 using HarmonyLib;
 using Il2CppInterop.Runtime;
+using Il2CppInterop.Runtime.Injection;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppInterop.Runtime.Runtime;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections;
-using System.Drawing;
 using System.Reflection;
 using System.Text;
 using System.Text.Json;
@@ -22,9 +26,11 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using Core;
+using ZenGarden;
+using static SingleBuffManager;
 using static UnityEngine.Object;
 
+#pragma warning disable
 ///
 ///Credit to likefengzi(https://github.com/likefengzi)(https://space.bilibili.com/237491236)
 ///
@@ -85,17 +91,6 @@ namespace CustomizeLib.BepInEx
         }
     }
 
-    /*[HarmonyPatch(typeof(Il2CppSystem.ValueTuple<string, ZombieType>), nameof(Il2CppSystem.ValueTuple<string, ZombieType>.Item1), MethodType.Getter)]
-    public static class ValueTuplePatch
-    {
-        [HarmonyPrefix]
-        public static bool get_item1(ref string __result)
-        {
-            __result = "111";
-            return true;
-        }
-    }*/
-
     /// <summary>
     /// 注册肥料使用事件
     /// </summary>
@@ -130,169 +125,6 @@ namespace CustomizeLib.BepInEx
             UnityEngine.Object.Destroy(__instance.gameObject);
         }
     }
-
-    //[HarmonyPatch(typeof(AlmanacMenu))]
-    //public static class AlmanacMenuPatch
-    //{
-    //    [HarmonyPatch(nameof(AlmanacMenu.Awake))]
-    //    [HarmonyPostfix]
-    //    public static void PostAwake(AlmanacMenu __instance)
-    //    {
-    //        __instance.transform.FindChild("AlmanacPlant2").FindChild("Cards").GetComponent<GridManager>().maxY = GameAPP.resourcesManager.allPlants.Count / 9 * 1.5f;
-    //    }
-    //}
-
-    ///// <summary>
-    ///// 初始化结束显示换肤按钮，加载皮肤
-    ///// </summary>
-    ///// <param name="__instance"></param>
-    ///// <returns></returns>
-    ///// <summary>
-    ///// 植物图鉴
-    ///// </summary>
-    //[HarmonyPatch(typeof(AlmanacPlantBank))]
-    //public static class AlmanacPlantBankPatch
-    //{
-    //    /// <summary>
-    //    /// 初始化结束显示换肤按钮，加载皮肤
-    //    /// </summary>
-    //    /// <param name="__instance"></param>
-    //    /// <returns></returns>
-    //    [HarmonyPatch(nameof(AlmanacPlantBank.Start))]
-    //    [HarmonyPostfix]
-    //    public static void PostStart(AlmanacPlantBank __instance)
-    //    {
-    //        if (CustomCore.CustomPlantTypes.Contains((PlantType)__instance.theSeedType))
-    //            __instance.skinButton.SetActive(CustomCore.CustomPlantsSkin.ContainsKey((PlantType)__instance.theSeedType));
-    //    }
-
-    //    /// <summary>
-    //    /// 从json加载植物信息
-    //    /// </summary>
-    //    /// <param name="__instance"></param>
-    //    /// <returns></returns>
-    //    [HarmonyPatch(nameof(AlmanacPlantBank.InitNameAndInfoFromJson))]
-    //    [HarmonyPrefix]
-    //    public static bool PreInitNameAndInfoFromJson(AlmanacPlantBank __instance)
-    //    {
-    //        //如果自定义植物图鉴信息包含
-    //        if (CustomCore.PlantsAlmanac.ContainsKey((PlantType)__instance.theSeedType))
-    //        {
-    //            //遍历图鉴上的组件
-    //            for (int i = 0; i < __instance.transform.childCount; i++)
-    //            {
-    //                Transform childTransform = __instance.transform.GetChild(i);
-    //                if (childTransform == null)
-    //                {
-    //                    continue;
-    //                }
-
-    //                //植物姓名
-    //                if (childTransform.name == "Name")
-    //                {
-    //                    childTransform.GetComponent<TextMeshPro>().text =
-    //                        CustomCore.PlantsAlmanac[(PlantType)__instance.theSeedType].Item1;
-    //                    childTransform.GetChild(0).GetComponent<TextMeshPro>().text =
-    //                        CustomCore.PlantsAlmanac[(PlantType)__instance.theSeedType].Item1;
-    //                }
-
-    //                //植物信息
-    //                if (childTransform.name == "Info")
-    //                {
-    //                    TextMeshPro info = childTransform.GetComponent<TextMeshPro>();
-    //                    info.overflowMode = TextOverflowModes.Page;
-    //                    info.fontSize = 40;
-    //                    info.text = CustomCore.PlantsAlmanac[(PlantType)__instance.theSeedType].Item2;
-    //                    __instance.introduce = info;
-    //                }
-
-    //                //植物阳光
-    //                if (childTransform.name == "Cost")
-    //                {
-    //                    childTransform.GetComponent<TextMeshPro>().text = "";
-    //                }
-    //            }
-
-    //            //阻断原始的加载
-    //            return false;
-    //        }
-
-    //        if (CustomCore.CustomPlantsSkinActive.ContainsKey((PlantType)__instance.theSeedType) && CustomCore.PlantsSkinAlmanac.ContainsKey((PlantType)__instance.theSeedType) && CustomCore.CustomPlantsSkinActive[(PlantType)__instance.theSeedType])
-    //        {
-    //            var alm = CustomCore.PlantsSkinAlmanac[(PlantType)__instance.theSeedType];
-    //            if (alm is null) return true;
-    //            var almanac = alm.Value;
-    //            //遍历图鉴上的组件
-    //            for (int i = 0; i < __instance.transform.childCount; i++)
-    //            {
-    //                Transform childTransform = __instance.transform.GetChild(i);
-    //                if (childTransform == null)
-    //                {
-    //                    continue;
-    //                }
-
-    //                //植物姓名
-    //                if (childTransform.name == "Name")
-    //                {
-    //                    childTransform.GetComponent<TextMeshPro>().text = almanac.Item1;
-    //                    childTransform.GetChild(0).GetComponent<TextMeshPro>().text = almanac.Item1;
-    //                }
-
-    //                //植物信息
-    //                if (childTransform.name == "Info")
-    //                {
-    //                    TextMeshPro info = childTransform.GetComponent<TextMeshPro>();
-    //                    info.overflowMode = TextOverflowModes.Page;
-    //                    info.fontSize = 40;
-    //                    info.text = almanac.Item2;
-    //                    __instance.introduce = info;
-    //                }
-
-    //                //植物阳光
-    //                if (childTransform.name == "Cost")
-    //                {
-    //                    childTransform.GetComponent<TextMeshPro>().text = "";
-    //                }
-    //            }
-
-    //            //阻断原始的加载
-    //            return false;
-    //        }
-
-    //        return true;
-    //    }
-
-    //    /// <summary>
-    //    /// 图鉴中鼠标按下，用于翻页
-    //    /// </summary>
-    //    /// <param name="__instance"></param>
-    //    /// <returns></returns>
-    //    [HarmonyPatch(nameof(AlmanacPlantBank.OnMouseDown))]
-    //    [HarmonyPrefix]
-    //    public static bool PreOnMouseDown(AlmanacPlantBank __instance)
-    //    {
-    //        //右侧显示
-    //        __instance.introduce =
-    //            __instance.gameObject.transform.FindChild("Info").gameObject.GetComponent<TextMeshPro>();
-    //        //页数
-    //        __instance.pageCount = __instance.introduce.m_pageNumber * 1;
-    //        //下一页
-    //        if (__instance.currentPage <= __instance.introduce.m_pageNumber)
-    //        {
-    //            ++__instance.currentPage;
-    //        }
-    //        else
-    //        {
-    //            __instance.currentPage = 1;
-    //        }
-
-    //        //翻页
-    //        __instance.introduce.pageToDisplay = __instance.currentPage;
-
-    //        //阻断原始翻页
-    //        return false;
-    //    }
-    //}
 
     [HarmonyPatch(typeof(AlmanacPlantWindow))]
     public static class AlmanacPlantWindowPatch
@@ -332,7 +164,7 @@ namespace CustomizeLib.BepInEx
         {
             __state = __instance.skinButton.active;
 
-            PatchMgr.OnChangeSkin(__instance.currentPlantType, GameAPP.resourcesManager.plantSkinDic[__instance.currentPlantType]);
+            // PatchMgr.OnChangeSkin(__instance.currentPlantType, GameAPP.resourcesManager.plantSkinDic[__instance.currentPlantType]);
         }
 
         [HarmonyPatch(nameof(AlmanacPlantWindow.LeftSkin))]
@@ -351,7 +183,7 @@ namespace CustomizeLib.BepInEx
         {
             __state = __instance.skinButton.active;
 
-            PatchMgr.OnChangeSkin(__instance.currentPlantType, GameAPP.resourcesManager.plantSkinDic[__instance.currentPlantType]);
+            // PatchMgr.OnChangeSkin(__instance.currentPlantType, GameAPP.resourcesManager.plantSkinDic[__instance.currentPlantType]);
         }
 
         [HarmonyPatch(nameof(AlmanacPlantWindow.RightSkin))]
@@ -402,6 +234,11 @@ namespace CustomizeLib.BepInEx
             foreach (var item in CustomCore.ZombiesAlmanac)
             {
                 if (AlmanacDataLoader.zombieDatas.ContainsKey(item.Key)) continue;
+                if (item.Value.Item3 != null)
+                {
+                    AlmanacDataLoader.zombieDatas.Add(item.Key, item.Value.Item3);
+                    continue;
+                }
                 var data = new ZombieInfo();
                 var newName = Regex.Replace(item.Value.Item1, @"\([^()]*\)", "");
                 data.name = newName;
@@ -430,145 +267,6 @@ namespace CustomizeLib.BepInEx
         }
     }
 
-    [HarmonyPatch(typeof(AlmanacBuffMenu))]
-    public static class AlmanacBuffMenuPatch
-    {
-        [HarmonyPatch(nameof(AlmanacBuffMenu.Awake))]
-        [HarmonyPostfix]
-        public static void PostAwake(AlmanacBuffMenu __instance)
-        {
-            {
-                var curse = __instance.transform.FindChild("Scroll View/Viewport/Content/curseBuffs").gameObject;
-                var customBuffs = Instantiate(curse, __instance.transform.FindChild("Scroll View/Viewport/Content"));
-                customBuffs.name = "customBuffs";
-                customBuffs.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "二创词条";
-                var list = new Il2CppSystem.Collections.Generic.List<AlmanacCardUI>();
-                foreach (var ((buffType, id), (desc, icon, zt)) in CustomCore.CustomBuffs)
-                {
-                    var obj = new Il2CppSystem.Object();
-                    switch (buffType)
-                    {
-                        case BuffType.UnlockPlant:
-                            obj = id.BoxEnumToIl2Object<TravelUnlocks>();
-                            break;
-                        case BuffType.AdvancedBuff:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            break;
-                        case BuffType.UltimateBuff:
-                            obj = id.BoxEnumToIl2Object<UltiBuff>();
-                            break;
-                        case BuffType.Debuff:
-                            obj = id.BoxEnumToIl2Object<TravelDebuff>();
-                            break;
-                        case BuffType.InvestmentBuff:
-                            obj = id.BoxEnumToIl2Object<InvestBuff>();
-                            break;
-                    }
-                    var cardInfo = new AlmanacBuffMenu.CardInfo
-                    {
-                        buff = obj,
-                        description = desc,
-                        isZombie = buffType == BuffType.Debuff
-                    };
-                    if (buffType == BuffType.Debuff)
-                        cardInfo.zombieType = zt;
-                    else
-                        cardInfo.plantType = icon;
-
-                    __instance.CreateCardUI(cardInfo, list);
-                }
-                foreach (var cardUI in list)
-                    cardUI.gameObject.SetActive(false);
-
-                Action action = () =>
-                {
-                    __instance.SetAllCards(false);
-                    foreach (var cardUI in list)
-                        cardUI.gameObject.SetActive(true);
-                };
-
-                UnityEvent unityEvent = new UnityEvent();
-                unityEvent.AddListener(action);
-                customBuffs.GetComponent<UIButton>().clickEvent = unityEvent;
-            }
-
-            {
-                foreach (var ((buffType, id), (almanacType, icon, zt)) in CustomCore.CustomAlmanacBuffType)
-                {
-                    var obj = new Il2CppSystem.Object();
-                    var list = new Il2CppSystem.Collections.Generic.List<AlmanacCardUI>();
-                    switch (almanacType)
-                    {
-                        case AlmanacBuffType.WeakUltimate:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.weakUltiBuffs;
-                            break;
-                        case AlmanacBuffType.StrongUltimate:
-                            obj = id.BoxEnumToIl2Object<UltiBuff>();
-                            list = __instance.strongUltiBuffs;
-                            break;
-                        case AlmanacBuffType.General:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.generalBuffs;
-                            break;
-                        case AlmanacBuffType.Random:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.randomBuffs;
-                            break;
-                        case AlmanacBuffType.Curse:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.curseBuffs;
-                            break;
-                        case AlmanacBuffType.Rogue:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.rogueBuffs;
-                            break;
-                        case AlmanacBuffType.Combo:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.comboBuffs;
-                            break;
-                        case AlmanacBuffType.Tiny:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.tinyBuffs;
-                            break;
-                        case AlmanacBuffType.Zombie:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.zombieBuffs;
-                            break;
-                        case AlmanacBuffType.Shooting:
-                            obj = id.BoxEnumToIl2Object<AdvBuff>();
-                            list = __instance.shootingBuffs;
-                            break;
-                    }
-                    var cardInfo = new AlmanacBuffMenu.CardInfo
-                    {
-                        buff = obj,
-                        description = TravelMgr.Instance.GetText(obj),
-                        plantType = icon
-                    };
-                    __instance.CreateCardUI(cardInfo, list);
-                }
-            }
-        }
-
-        [HarmonyPatch(nameof(AlmanacBuffMenu.OnCardClick))]
-        [HarmonyPostfix]
-        public static void PostOnCardClick(AlmanacBuffMenu __instance, AlmanacCardUI card)
-        {
-            AlmanacBuffMenu.CardInfo cardInfo = __instance.cardInfos[card];
-            var (type, id) = TravelExtensions.GetTypeAndID(cardInfo.buff);
-            if (CustomCore.CustomBuffsBg.ContainsKey((type, id)))
-            {
-                if (CustomCore.CustomBuffsBg[(type, id)].BgType == BuffBgType.Day)
-                    __instance.windowBackground.sprite = __instance.day;
-                else if (CustomCore.CustomBuffsBg[(type, id)].BgType == BuffBgType.Night)
-                    __instance.windowBackground.sprite = __instance.night;
-                else if (CustomCore.CustomBuffsBg[(type, id)].BgType == BuffBgType.Night)
-                    __instance.windowBackground.sprite = __instance.pool;
-            }
-        }
-    }
-
     [HarmonyPatch(typeof(ConveyManager))]
     public static class ConveyManagerPatch
     {
@@ -593,7 +291,7 @@ namespace CustomizeLib.BepInEx
         }
     }
 
-    [HarmonyPatch(typeof(Core.InGameText), nameof(Core.InGameText.ShowText))]
+    [HarmonyPatch(typeof(InGameText), nameof(InGameText.ShowText))]
     public static class InGameTextPatch
     {
         public static bool disable = false;
@@ -730,10 +428,10 @@ namespace CustomizeLib.BepInEx
             {
                 if (collider == null || collider.gameObject == null || collider.IsDestroyed() || collider.gameObject.IsDestroyed()) continue;
                 if (!collider.TryGetComponent<Plant>(out var plant) || plant == null || plant.IsDestroyed()) continue;
-                if (CustomCore.CustomBulletsSkinID.ContainsKey((plant.thePlantType, theBulletType)))
+                if (!GameAPP.resourcesManager.plantSkinDic.TryGetValue(plant.thePlantType, out var val)) continue;
+                if (CustomCore.CustomBulletsSkinID.TryGetValue((plant.thePlantType, theBulletType, val), out var list))
                 {
                     var ori = theBulletType;
-                    var list = CustomCore.CustomBulletsSkinID[(plant.thePlantType, theBulletType)];
                     theBulletType = list[UnityEngine.Random.Range(0, list.Count)];
                     __state = (true, ori, theBulletType, plant.thePlantType);
                     return;
@@ -747,10 +445,10 @@ namespace CustomizeLib.BepInEx
                 if (!collider.TryGetComponent<Bullet>(out var bullet) || bullet == null || bullet.IsDestroyed()) continue;
                 if (bullet.GetData("SkinFromType") == null || bullet.GetData("SkinData") == null) continue;
                 var pt = bullet.GetData<PlantType>("SkinFromType");
-                if (CustomCore.CustomBulletsSkinID.ContainsKey((pt, theBulletType)))
+                if (!GameAPP.resourcesManager.plantSkinDic.TryGetValue(pt, out var val)) continue;
+                if (CustomCore.CustomBulletsSkinID.TryGetValue((pt, theBulletType, val), out var list))
                 {
                     var ori = theBulletType;
-                    var list = CustomCore.CustomBulletsSkinID[(pt, theBulletType)];
                     theBulletType = list[UnityEngine.Random.Range(0, list.Count)];
                     __state = (true, ori, theBulletType, pt);
                     return;
@@ -760,10 +458,10 @@ namespace CustomizeLib.BepInEx
             var positions = PositionRecorder.GetRecordPositions(new Vector2(x - 0.1f, y), 0.1f);
             foreach (var item in positions)
             {
-                if (CustomCore.CustomBulletsSkinID.ContainsKey((item.plantType, theBulletType)))
+                if (!GameAPP.resourcesManager.plantSkinDic.TryGetValue(item.plantType, out var val)) continue;
+                if (CustomCore.CustomBulletsSkinID.TryGetValue((item.plantType, theBulletType, val), out var list))
                 {
                     var ori = theBulletType;
-                    var list = CustomCore.CustomBulletsSkinID[(item.plantType, theBulletType)];
                     theBulletType = list[UnityEngine.Random.Range(0, list.Count)];
                     __state = (true, ori, theBulletType, item.plantType);
                     PositionRecorder.RemovePosition(item.index);
@@ -883,7 +581,7 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostTravelAdvanced_0(ref AdvBuff buff, ref bool __result)
         {
-            var result = Utils.IsMultiLevelBuff(BuffType.AdvancedBuff, (int)buff);
+            var result = MultiLevelBuff.IsMultiLevelBuff(BuffType.AdvancedBuff, (int)buff);
             if (!result.Item1)
                 return;
             int index = result.Item2;
@@ -900,7 +598,7 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostTravelUltimate_0(ref UltiBuff buff, ref bool __result)
         {
-            var result = Utils.IsMultiLevelBuff(BuffType.UltimateBuff, (int)buff);
+            var result = MultiLevelBuff.IsMultiLevelBuff(BuffType.UltimateBuff, (int)buff);
             if (!result.Item1)
                 return;
             int index = result.Item2;
@@ -917,7 +615,7 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostTravelUltimateLevel(ref UltiBuff buff, ref int __result)
         {
-            var result = Utils.IsMultiLevelBuff(BuffType.UltimateBuff, (int)buff);
+            var result = MultiLevelBuff.IsMultiLevelBuff(BuffType.UltimateBuff, (int)buff);
             if (!result.Item1)
                 return;
             int index2 = result.Item2;
@@ -934,7 +632,7 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostTravelDebuff_1(ref TravelDebuff buff, ref bool __result)
         {
-            var result = Utils.IsMultiLevelBuff(BuffType.Debuff, (int)buff);
+            var result = MultiLevelBuff.IsMultiLevelBuff(BuffType.Debuff, (int)buff);
             if (!result.Item1)
                 return;
             int index = result.Item2;
@@ -984,19 +682,11 @@ namespace CustomizeLib.BepInEx
     {
         [HarmonyPatch(nameof(UIButton.OnMouseUpAsButton))]
         [HarmonyPostfix]
-        public static void Postfix()
-        {
-            if (SelectCustomPlants.CustomPageParent != null && SelectCustomPlants.CustomPageParent.active && GameAPP.theGameStatus != GameStatus.BigGarden)
-                SelectCustomPlants.CustomPageParent.SetActive(false);
-        }
-
-        [HarmonyPatch(nameof(UIButton.Start))]
-        [HarmonyPostfix]
         public static void PostfixStart(UIButton __instance)
         {
-            if (__instance.name == "LastPage" && Board.Instance != null && Board.Instance.boardTag.isIZ)
+            if (SelectCustomPlants.Instance != null && SelectCustomPlants.CustomPage != null && SelectCustomPlants.CustomPage.activeSelf)
             {
-                SelectCustomPlants.InitCustomCards_IZ();
+                SelectCustomPlants.CustomPage.SetActive(false);
             }
         }
     }
@@ -1092,101 +782,6 @@ namespace CustomizeLib.BepInEx
                 }
             }
         }
-
-        //[HarmonyPatch(nameof(InitBoard.RightMoveCamera))]
-        //[HarmonyPostfix]
-        //public static void PostMoveOverEvent(InitBoard __instance, ref string direction)
-        //{
-        //    if (GameAPP.theBoardType is not (LevelType)66) return;
-        //    var levelData = CustomCore.CustomLevels[GameAPP.theBoardLevel];
-        //    if (direction == "right")
-        //    {
-        //        if (__instance.board != null)
-        //        {
-        //            if (!__instance.board.boardTag.disableSelectCard)
-        //            {
-        //                // 设置游戏状态
-        //                GameAPP.theGameStatus = GameStatus.Selecting;
-
-        //                // UI控制
-        //                InGameUI.Instance.ConveyorBelt.SetActive(false);
-        //                InGameUI.Instance.Bottom.SetActive(true);
-
-        //                // 启动协程移动UI元素
-        //                __instance.StartCoroutine(__instance.MoveDirection(InGameUI.Instance.SeedBank, 79f, 0));
-        //                __instance.StartCoroutine(__instance.MoveDirection(InGameUI.Instance.Bottom, 525f, 1));
-        //            }
-        //            else
-        //            {
-        //                // 延迟执行方法
-        //                __instance.Invoke("LeftMoveCamera", 1.5f);
-        //                InGameUI.Instance.Bottom.SetActive(false);
-        //            }
-        //        }
-        //    }
-        //    else if (direction == "left")
-        //    {
-        //        if (__instance.board == null) return;
-
-        //        if (__instance.board.boardTag.disableSelectCard)
-        //        {
-        //            if (__instance.board.cardBank)
-        //            {
-        //                __instance.StartCoroutine(__instance.MoveDirection(InGameUI.Instance.SeedBank, 79f, 0));
-        //                __instance.AddCard();
-        //            }
-        //            else
-        //            {
-        //                InGameUI.Instance.SeedBank.SetActive(false);
-        //            }
-        //            InGameUI.Instance.Bottom.SetActive(false);
-        //        }
-
-        //        // 音量渐变协程
-        //        __instance.StartCoroutine(__instance.DecreaseVolume());
-
-        //        // 降低UI位置
-        //        InGameUI.Instance.LowerUI();
-
-        //        // 初始化割草机（特定模式下）
-        //        if (!__instance.board.boardTag.disableMower)
-        //        {
-        //            __instance.InitMower();
-        //        }
-
-        //        // 雾效果移动
-        //        if (__instance.board.fog != null)
-        //        {
-        //            Vector3 fogPosition = __instance.board.fog.transform.position;
-        //            Vector3 boardPosition = __instance.board.background.transform.position;
-
-        //            FogMgr.Instance.MoveObject(
-        //                new(fogPosition.x,
-        //                fogPosition.y,
-        //                boardPosition.z),
-        //                10f  // 移动速度
-        //            );
-        //        }
-
-        //        // BOSS战特殊处理
-        //        float invokeDelay = 0.5f;
-        //        if (__instance.board.boardTag.isBoss || __instance.board.boardTag.isBoss2)
-        //        {
-        //            var zombie = CreateZombie.Instance.SetZombie(0, levelData.RealBoss2 ? ZombieType.ZombieBoss2 : ZombieType.ZombieBoss, 0f);
-
-        //            if (__instance.board.boss2)
-        //            {
-        //                Lawnf.SetZombieHealth(zombie, 5f);
-        //            }
-        //            invokeDelay = 3.5f;
-        //            __instance.board.boss2 = levelData.RealBoss2;
-        //        }
-
-        //        // 延迟调用方法
-        //        __instance.Invoke("ReadySetPlant", invokeDelay);
-        //    }
-        //    return false;
-        //}
     }
 
     [HarmonyPatch(typeof(InitZombieList))]
@@ -1410,8 +1005,12 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostStart(GameAPP __instance)
         {
+            if (!HookCall.load)
+            {
+                HookCall.SetBuffArr();
+                HookCall.load = true;
+            }
             __instance.StartCoroutine(CoreTools.Init());
-            __instance.StartCoroutine(PatchMgr.RegisterSkin());
         }
 
         [HarmonyPatch(nameof(GameAPP.LoadResources))]
@@ -1462,9 +1061,19 @@ namespace CustomizeLib.BepInEx
                 if (!GameAPP.resourcesManager.allZombieTypes.Contains(z.Key))
                     GameAPP.resourcesManager.allZombieTypes.Add(z.Key);//注册僵尸类型
                 GameAPP.resourcesManager.zombiePrefabs[z.Key] = z.Value.Item1;//注册僵尸预制体
+                GameAPP.resourcesManager.zombiePrefabs[z.Key].layer = LayerMask.NameToLayer("Zombie"); // 改层级
                 GameAPP.resourcesManager.zombiePrefabs[z.Key].tag = "Zombie";//必修打tag
+                InitZombieList.allowAllzombies.Add(z.Key);
                 if (z.Value.Item2 != null)
                     GameAPP.resourcesManager.zombieSprites[z.Key] = z.Value.Item2;
+            }
+
+            // 先注册二创子弹，再注册皮肤，不然注册二创子弹皮肤会出bug
+            foreach (var bullet in CustomCore.CustomBullets)//注册二创子弹
+            {
+                GameAPP.resourcesManager.bulletPrefabs[bullet.Key] = bullet.Value;//注册子弹预制体
+                if (!GameAPP.resourcesManager.allBullets.Contains(bullet.Key))
+                    GameAPP.resourcesManager.allBullets.Add(bullet.Key);//注册子弹类型
             }
 
             foreach (var (id, list) in CustomCore.CustomSkinBullet) //注册二创皮肤子弹
@@ -1482,13 +1091,6 @@ namespace CustomizeLib.BepInEx
                 }
             }
 
-            foreach (var bullet in CustomCore.CustomBullets)//注册二创子弹
-            {
-                GameAPP.resourcesManager.bulletPrefabs[bullet.Key] = bullet.Value;//注册子弹预制体
-                if (!GameAPP.resourcesManager.allBullets.Contains(bullet.Key))
-                    GameAPP.resourcesManager.allBullets.Add(bullet.Key);//注册子弹类型
-            }
-
             foreach (var par in CustomCore.CustomParticles)//注册粒子效果
             {
                 GameAPP.particlePrefab[(int)par.Key] = par.Value;
@@ -1502,10 +1104,25 @@ namespace CustomizeLib.BepInEx
                 GameAPP.spritePrefab[spr.Key] = spr.Value;
             }
 
-            foreach (var audio in CustomCore.CustomSounds)
+            foreach (var audio in CustomCore.CustomSounds) // 注册自定义音效
             {
                 GameAPP.soundManager.sounds[(SoundType)audio.Key] = audio.Value;
             }
+            
+            foreach (var music in CustomCore.CustomMusics) // 注册自定义音乐
+            {
+                GameAPP.soundManager.musics.Add(music.Key, music.Value);
+                SoundManager.MusicNames.Add(music.Key, music.Key.ToString());
+            }
+                
+
+            // 把键的index加上prefabs的Count得到新的实际Index
+            CustomCore.CustomBulletsSkinID = CustomCore.CustomBulletsSkinID.ToDictionary(kvp =>
+                (kvp.Key.pt, kvp.Key.oriBulletType, 
+                kvp.Key.index + (GameAPP.resourcesManager._plantPrefabs.TryGetValue(kvp.Key.pt, out var list) ? list.Count : 0)), // 如果有，用列表的长度，否则用0
+                kvp => kvp.Value);
+
+            GameAPP.Instance.StartCoroutine(PatchMgr.RegisterSkin()); // 在所有注册完成之后启动皮肤协程
         }
     }
 
@@ -1527,18 +1144,13 @@ namespace CustomizeLib.BepInEx
                 // 注册红卡
                 {
                     var propertyInfo = typeof(TypeMgr).GetProperty("RedPlant", BindingFlags.Static | BindingFlags.Public);
-                    if (propertyInfo is null)
-                        goto Lable1;
                     var value = propertyInfo.GetValue(null);
-                    if (value is null)
-                        goto Lable1;
                     var redPlant = (Il2CppSystem.Collections.Generic.HashSet<PlantType>)value;
                     foreach (var (k, v) in CustomCore.TypeMgrExtra.LevelPlants)
                         if (v == CardLevel.Red)
                             redPlant.Add(k);
                     propertyInfo.SetValue(null, redPlant);
                 }
-            Lable1:
                 // 注册防碾压植物
                 {
                     var propertyInfo = typeof(TypeMgr).GetProperty("UncrashablePlants", BindingFlags.Static | BindingFlags.Public);
@@ -1554,7 +1166,6 @@ namespace CustomizeLib.BepInEx
                 }
 
                 PatchMgr.Load = true;
-
                 foreach (var action in CorePlugin.OnGameInitAction)
                     action.Invoke();
             }
@@ -1562,73 +1173,23 @@ namespace CustomizeLib.BepInEx
             {
                 PatchMgr.Load = true;
             }
-            /*Debug.Log(TravelDictionary.PlantInfo.Count);
-            foreach (var (key, list) in CustomCore.CustomPlantInfo)
-            {
-                if (!TravelDictionary.PlantInfo.ContainsKey(key))
-                {
-                    var valueTuple = new Il2CppSystem.ValueTuple<Il2CppSystem.Nullable<PlantType>, Il2CppSystem.Object, Il2CppSystem.Object, bool>();
-                    valueTuple.Item1 = new Il2CppSystem.Nullable<PlantType>(key);
-                    valueTuple.Item4 = CustomCore.CustomStrongUltimatePlants.ContainsKey(key);
-                    for (int i = 0; i < list.Count; i++)
-                    {
-                        if (i > 2) break;
-                        var (buffType, id) = list[i];
-                        var type = typeof(AdvBuff);
-                        switch (buffType)
-                        {
-                            case BuffType.UnlockPlant:
-                                type = typeof(TravelUnlocks);
-                                break;
-                            case BuffType.UltimateBuff:
-                                type = typeof(UltiBuff);
-                                break;
-                            case BuffType.Debuff:
-                                type = typeof(TravelDebuff);
-                                break;
-                            case BuffType.InvestmentBuff:
-                                type = typeof(InvestBuff);
-                                break;
-                        }
-                        var ilObject = Il2CppSystem.Enum.Parse(Il2CppType.From(type), id.ToString());
-                        switch (i)
-                        {
-                            case 0:
-                                valueTuple.Item2 = ilObject;
-                                break;
-                            case 1:
-                                valueTuple.Item3 = ilObject;
-                                break;
-                        }
-                    }
-                    TravelDictionary.PlantInfo.Add(key, valueTuple);
-                }
-            }
-
-            Debug.Log(TravelDictionary.PlantInfo.Count);
-            /*Debug.Log(TravelDictionary.PlantInfo.Count);
-            {
-                var field = typeof(TravelDictionary).GetField("PlantInfo",
-                    BindingFlags.Public | BindingFlags.Static);
-
-                // 2. 获取当前字典实例
-                var dict = ((Il2CppSystem.Object)field?.GetValue(null)).
-                    Cast<Il2CppSystem.Collections.Generic.Dictionary<PlantType, 
-                    Il2CppSystem.ValueTuple<Il2CppSystem.Nullable<PlantType>, Il2CppSystem.Object, Il2CppSystem.Object, bool>>>();
-                foreach (var (key, value) in CustomCore.PlantInfoCache)
-                {
-                    dict.Add(key, value);
-                }
-
-                field.SetValue(null, dict);
-            }*/
         }
     }
 
-    [HarmonyPatch(typeof(OptionMenu.__c__DisplayClass18_0))]
+    [HarmonyPatch]
     public static class OptionMenuPatch
     {
-        [HarmonyPatch(nameof(OptionMenu.__c__DisplayClass18_0._OnLockAlmanacMenu_b__0))]
+        [HarmonyTargetMethod]
+        public static MethodBase GetTargetMethod()
+        {
+            foreach (var type in typeof(OptionMenu).GetNestedTypes(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var method = type.GetMethod("_OnLockAlmanacMenu_b__0", BindingFlags.Public | BindingFlags.Instance);
+                if (method != null) return method;
+            }
+            return null;
+        }
+
         [HarmonyPostfix]
         public static void PostOnLockAlmanacMenu()
         {
@@ -1672,10 +1233,11 @@ namespace CustomizeLib.BepInEx
     [HarmonyPatch(typeof(SeedLibrary))]
     public static class SeedLibraryPatch
     {
-        [HarmonyPatch(nameof(SeedLibrary.InitCardGroup))]
+        [HarmonyPatch(nameof(SeedLibrary.Awake))]
         [HarmonyPostfix]
-        public static void PostSetAllCards(SeedLibrary __instance)
+        public static void PostAwake(SeedLibrary __instance)
         {
+            SelectCustomPlants.InitButton();
             // 注册自定义卡牌
             PatchMgr.ShowCustomCards(__instance);
         }
@@ -1691,14 +1253,12 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostStart(PlantCardPackageBuilder __instance)
         {
+            SelectCustomPlants.InitButton();
             // 注册自定义卡牌
             PatchMgr.ShowCustomCards(__instance);
         }
     }
 
-    /// <summary>
-    /// 进入一局游戏，显示二创植物Button
-    /// </summary>
     [HarmonyPatch(typeof(Board))]
     public static class Board_Patch
     {
@@ -1706,7 +1266,6 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void PostStart()
         {
-            SelectCustomPlants.InitCustomCards();
             if (TravelMgr.Instance == null)
                 return;
             if (TravelMgr.Instance.GetData("LoadByEndless") is null)
@@ -1752,7 +1311,7 @@ namespace CustomizeLib.BepInEx
                     return;
                 foreach (var (key, value) in CustomCore.CustomBuffsLevel)
                 {
-                    var result = Utils.IsMultiLevelBuff(key.Item1, key.Item2);
+                    var result = MultiLevelBuff.IsMultiLevelBuff(key.Item1, key.Item2);
                     if (!result.Item1)
                         continue;
                     int index = result.Item2;
@@ -1968,29 +1527,26 @@ namespace CustomizeLib.BepInEx
                 __instance.SetPlant(CustomCore.CustomBuffIcon[(buffType, buffIndex)]);
             }
             if (CustomCore.CustomBuffsBg.ContainsKey((buffType, buffIndex)))
-            {
                 __instance.SetBackground(CustomCore.CustomBuffsBg[(buffType, buffIndex)]);
-            }
             if (CustomCore.CustomDebuffs.ContainsKey(buffIndex))
             {
                 if (__instance.show != null)
                     Destroy(__instance.show);
                 __instance.SetZombie(CustomCore.CustomDebuffs[buffIndex].Item2);
             }
-            var result = Utils.IsMultiLevelBuff(buffType, buffIndex);
+
+            // 多级词条文本显示
+            var result = MultiLevelBuff.IsMultiLevelBuff(buffType, buffIndex);
             try
             {
+                // 如果是多级词条
                 if (result.Item1)
                 {
-                    var array = (int[])TravelMgr.Instance.GetData("CustomBuffsLevel");
-                    if (array is null)
-                        return;
+                    var array = MultiLevelBuff.GetBuffArray();
+                    if (array is null) return; // 如果数据数组为空直接返回
                     int index = result.Item2;
-                    var list = CustomCore.CustomBuffsLevel.Where(kvp => kvp.Key.Item1 == buffType && kvp.Key.Item2 == buffIndex).ToList();
-                    int maxLevel = 1;
-                    if (list.Count > 0)
-                        maxLevel = list[0].Value.Item2;
-                    if (TravelLookMenu.Instance.showAll)
+                    int maxLevel = MultiLevelBuff.GetBuffMaxLevel(buffType, buffIndex);
+                    if (TravelLookMenu.Instance.showAll) // 如果是iz的全选模式
                     {
                         __instance.SetText(array[index] != 0, array[index]);
                         if (array[index] <= maxLevel &&
@@ -2007,24 +1563,22 @@ namespace CustomizeLib.BepInEx
                     {
                         if (array[index] < maxLevel && maxLevel != 1)
                         {
-                            if (array[index] >= maxLevel)
-                                __instance.SetText("已满级");
-                            else
-                                __instance.SetText($"{array[index]}级");
+                            __instance.SetText($"{array[index]}级");
                         }
-                        if (array[index] >= maxLevel)
+                        else if (array[index] >= maxLevel && maxLevel != 1)
                         {
                             __instance.SetText("已满级");
                         }
-                        TravelMgr.Instance.SetData("CustomBuffsLevel", array);
+                        TravelMgr.Instance.SetData(LevelBuffData.LEVEL_BUFF_ARR, array);
                     }
                 }
             }
-            catch (ArgumentException)
+            catch (ArgumentException ex)
             {
-                CustomCore.CLogger.LogInfo("Can't get data");
+                CustomCore.CLogger.LogWarning($"StackTrace: {ex.StackTrace}");
             }
         }
+
         /// <summary>
         /// 高级词条升级处理
         /// </summary>
@@ -2033,98 +1587,35 @@ namespace CustomizeLib.BepInEx
         public static bool PreOnMouseUpAsButton(TravelLookBuff __instance)
         {
             var (buffType, buffIndex) = __instance.TryGetTypeAndID();
-            var result = Utils.IsMultiLevelBuff(buffType, buffIndex);
-            bool reset = false;
+            var result = MultiLevelBuff.IsMultiLevelBuff(buffType, buffIndex);
+            bool reset = false; // 重置升级词条
             if (result.Item1)
             {
                 try
                 {
-                    var array = (int[])TravelMgr.Instance.GetData("CustomBuffsLevel");
-                    if (array is null)
-                        return true;
+                    var array = MultiLevelBuff.GetBuffArray();
+                    if (array is null) return true;
                     int index = result.Item2;
-                    var list = CustomCore.CustomBuffsLevel.Where(kvp => kvp.Key.Item1 == buffType && kvp.Key.Item2 == buffIndex).ToList();
-                    int maxLevel = 1;
-                    if (list.Count > 0)
-                        maxLevel = list[0].Value.Item2;
-                    if (TravelLookMenu.Instance.showAll)
+                    int maxLevel = MultiLevelBuff.GetBuffMaxLevel(buffType, buffIndex);
+                    if (TravelLookMenu.Instance.showAll) // 如果是iz的全选
                     {
-                        var data = TravelMgr.Instance.data;
-                        var id = new BuffID(buffIndex);
-                        array[index] = array[index] + 1;
-                        if (array[index] > maxLevel)
-                        {
-                            array[index] = 0;
-                        }
-                        if (array[index] == 0)
-                        {
-                            switch (buffType)
-                            {
-                                case BuffType.AdvancedBuff:
-                                    if (data.advBuffs.Contains(id))
-                                        TravelMgr.Instance.data.advBuffs.Remove(id);
-                                    break;
-                                case BuffType.UltimateBuff:
-                                    if (data.ultiBuffs.Contains(id))
-                                        data.ultiBuffs.Remove(id);
-                                    if (data.ultiBuffs_lv2.Contains(id))
-                                        data.ultiBuffs_lv2.Remove(id);
-                                    break;
-                                case BuffType.Debuff:
-                                    if (data.travelDebuffs.Contains(id))
-                                        data.travelDebuffs.Add(id);
-                                    break;
-                                case BuffType.UnlockPlant:
-                                    if (data.unlockedPlants.Contains(id))
-                                        data.unlockedPlants.Add(id);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            switch (buffType)
-                            {
-                                case BuffType.AdvancedBuff:
-                                    if (!data.advBuffs.Contains(id))
-                                        data.advBuffs.Add(id);
-                                    break;
-                                case BuffType.UltimateBuff:
-                                    if (!data.ultiBuffs.Contains(id))
-                                        data.ultiBuffs.Add(id);
-                                    if (!data.ultiBuffs_lv2.Contains(id))
-                                        data.ultiBuffs_lv2.Add(id);
-                                    break;
-                                case BuffType.Debuff:
-                                    if (!data.travelDebuffs.Contains(id))
-                                        data.travelDebuffs.Add(id);
-                                    break;
-                                case BuffType.UnlockPlant:
-                                    if (!data.unlockedPlants.Contains(id))
-                                        data.unlockedPlants.Add(id);
-                                    break;
-                                default:
-                                    break;
-                            }
-                        }
-                        __instance.SetText(array[index] != 0, array[index]);
-                        if (array[index] <= maxLevel &&
-                            array[index] != 0)
+                        MultiLevelBuff.AddBuffLevel(buffType, buffIndex);
+                        __instance.SetText(array[index] != 0, array[index]); // 设置文本
+                        if (array[index] <= maxLevel && array[index] != 0)
                         {
                             if (maxLevel > 1)
                                 __instance.SetText($"已开启（{array[index]}级）");
                             else
                                 __instance.SetText($"已开启");
                         }
-                        TravelMgr.Instance.SetData("CustomBuffsLevel", array);
+                        TravelMgr.Instance.SetData(LevelBuffData.LEVEL_BUFF_ARR, array);
                         return false;
                     }
                     else
                     {
-                        if (array[index] < maxLevel && Lawnf.TravelAdvanced((AdvBuff)2002) && maxLevel != 1)
+                        if (array[index] < maxLevel && CoreTools.TravelAdvanced("升级") && maxLevel != 1)
                         {
-                            array[index] = array[index] + 1;
+                            array[index] = array[index] + 1; // 升级
                             reset = true;
                             if (array[index] >= maxLevel)
                                 __instance.SetText("已满级");
@@ -2138,17 +1629,249 @@ namespace CustomizeLib.BepInEx
                         TravelMgr.Instance.SetData("CustomBuffsLevel", array);
                     }
                 }
-                catch (ArgumentException)
+                catch (ArgumentException ex)
                 {
-                    CustomCore.CLogger.LogInfo("Can't get data");
+                    CustomCore.CLogger.LogWarning($"StackTrace: {ex.StackTrace}");
                 }
             }
             if (reset)
             {
-                __instance.manager.data.advBuffs.Remove((AdvBuff)2002); // 升级
+                __instance.manager.data.advBuffs.Remove(CoreTools.GetAdvBuffByString("升级")); // 移除升级
                 return false;
             }
             return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(AlmanacBuffMenu))]
+    public static class AlmanacBuffMenuPatch
+    {
+        [HarmonyPatch(nameof(AlmanacBuffMenu.OnToolClick))]
+        [HarmonyPrefix]
+        public static bool PreOnToolClick(AlmanacBuffMenu __instance, ref UIButton button)
+        {
+            if (__instance.current == null) return true;
+            var buff = __instance.cardInfos[__instance.current].buff;
+            var (buffType, buffIndex) = TravelExtensions.GetTypeAndID(buff);
+            var result = MultiLevelBuff.IsMultiLevelBuff(buffType, buffIndex);
+            bool reset = false; // 重置升级词条
+            if (result.Item1)
+            {
+                try
+                {
+                    var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+                    var array = MultiLevelBuff.GetBuffArray();
+                    if (array is null) return true;
+                    int index = result.Item2;
+                    int maxLevel = MultiLevelBuff.GetBuffMaxLevel(buffType, buffIndex);
+                    if (__instance.editMode) // 如果是iz的全选
+                    {
+                        MultiLevelBuff.AddBuffLevel(buffType, buffIndex);
+                        MultiLevelBuff.SetToolText(button, buffType, buffIndex, array[index] != 0); // 设置文本
+                        TravelMgr.Instance.SetData(LevelBuffData.LEVEL_BUFF_ARR, array);
+                        // 更新卡片UI的透明度
+                        var hasBuff = Lawnf.HasTravelBuff(buff) ? 0f : 1f;
+                        __instance.current.GetComponent<Image>().color = new Color(hasBuff, 1f, hasBuff, 1f);
+                        return false;
+                    }
+                    else
+                    {
+                        if (array[index] < maxLevel && CoreTools.TravelAdvanced("升级") && maxLevel != 1)
+                        {
+                            array[index] = array[index] + 1; // 升级
+                            reset = true;
+                            if (array[index] >= maxLevel)
+                                buttonText.text = "已满级";
+                            else
+                                buttonText.text = $"{array[index]}级";
+                        }
+                        if (array[index] >= maxLevel) buttonText.text = "已满级";
+                        TravelMgr.Instance.SetData("CustomBuffsLevel", array);
+                        // 更新卡片UI的透明度
+                        var hasBuff = Lawnf.HasTravelBuff(buff) ? 0f : 1f;
+                        __instance.current.GetComponent<Image>().color = new Color(hasBuff, 1f, hasBuff, 1f);
+                    }
+                }
+                catch (ArgumentException ex)
+                {
+                    CustomCore.CLogger.LogWarning($"StackTrace: {ex.StackTrace}");
+                }
+            }
+            if (reset)
+            {
+                TravelMgr.Instance.data.advBuffs.Remove(CoreTools.GetAdvBuffByString("升级")); // 移除升级
+                return false;
+            }
+            return true;
+        }
+
+        [HarmonyPatch(nameof(AlmanacBuffMenu.OnCardClick))]
+        [HarmonyPostfix]
+        public static void PostOnCardClick(AlmanacBuffMenu __instance, ref AlmanacCardUI card)
+        {
+            var button = __instance.transform.FindChild("Tool").GetComponent<UIButton>();
+            var buttonText = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (__instance.current == null || !__instance.cardInfos.ContainsKey(__instance.current)) return;
+            var buff = __instance.cardInfos[__instance.current].buff;
+            var (buffType, buffIndex) = TravelExtensions.GetTypeAndID(buff);
+            var array = MultiLevelBuff.GetBuffArray();
+            if (array is null) return;
+            var result = MultiLevelBuff.IsMultiLevelBuff(buffType, buffIndex);
+            if (result.Item1)
+            {
+                MultiLevelBuff.SetToolText(button, buffType, buffIndex, array[result.Item2] != 0); // 设置文本
+            }
+        }
+
+        [HarmonyPatch(nameof(AlmanacBuffMenu.InitMenu))]
+        [HarmonyPrefix]
+        public static void PreInitMenu(AlmanacBuffMenu __instance, out bool __state)
+        {
+            __state = __instance.inited;
+        }
+
+        [HarmonyPatch(nameof(AlmanacBuffMenu.InitMenu))]
+        [HarmonyPostfix]
+        public static void PostInitMenu(AlmanacBuffMenu __instance, bool __state)
+        {
+            if (__state) return;
+            {
+                var curse = __instance.transform.FindChild("Scroll View/Viewport/Content/curseBuffs").gameObject;
+                var customBuffs = Instantiate(curse, __instance.transform.FindChild("Scroll View/Viewport/Content"));
+                customBuffs.name = "customBuffs";
+                customBuffs.transform.GetChild(0).GetComponent<TextMeshProUGUI>().text = "二创词条";
+                var list = new Il2CppSystem.Collections.Generic.List<AlmanacCardUI>();
+                int cnt = 0; // 当前是第几次循环
+                foreach (var ((buffType, id), (desc, icon, zt)) in CustomCore.CustomBuffs)
+                {
+                    var obj = new Il2CppSystem.Object();
+                    switch (buffType)
+                    {
+                        case BuffType.UnlockPlant:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<TravelUnlocks>(id);
+                            break;
+                        case BuffType.AdvancedBuff:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            break;
+                        case BuffType.UltimateBuff:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<UltiBuff>(id);
+                            break;
+                        case BuffType.Debuff:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<TravelDebuff>(id);
+                            break;
+                        case BuffType.InvestmentBuff:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<InvestBuff>(id);
+                            break;
+                    }
+                    if (!Lawnf.HasTravelBuff(obj) && !__instance.editMode && AlmanacBuffMenu.lookBuff) continue;
+                    var cardInfo = new AlmanacBuffMenu.CardInfo
+                    {
+                        buff = obj,
+                        description = desc,
+                        isZombie = buffType == BuffType.Debuff
+                    };
+                    if (buffType == BuffType.Debuff)
+                        cardInfo.zombieType = zt;
+                    else
+                        cardInfo.plantType = icon;
+                    __instance.CreateCardUI(cardInfo, list);
+                    if (__instance.editMode)
+                    {
+                        var hasBuff = Lawnf.HasTravelBuff(obj) ? 0f : 1f;
+                        list[cnt].GetComponent<Image>().color = new Color(hasBuff, 1f, hasBuff, 1f);
+                        cnt++;
+                    }
+                }
+                foreach (var cardUI in list)
+                    cardUI.gameObject.SetActive(false);
+
+                Action action = () =>
+                {
+                    __instance.SetAllCards(false);
+                    foreach (var cardUI in list)
+                        cardUI.gameObject.SetActive(true);
+                };
+
+                UnityEvent unityEvent = new UnityEvent();
+                unityEvent.AddListener(action);
+                customBuffs.GetComponent<UIButton>().clickEvent = unityEvent;
+            }
+
+            {
+                foreach (var ((buffType, id), (almanacType, icon, zt)) in CustomCore.CustomAlmanacBuffType)
+                {
+                    var obj = new Il2CppSystem.Object();
+                    var list = new Il2CppSystem.Collections.Generic.List<AlmanacCardUI>();
+                    switch (almanacType)
+                    {
+                        case AlmanacBuffType.WeakUltimate:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.weakUltiBuffs;
+                            break;
+                        case AlmanacBuffType.StrongUltimate:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<UltiBuff>(id);
+                            list = __instance.strongUltiBuffs;
+                            break;
+                        case AlmanacBuffType.General:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.generalBuffs;
+                            break;
+                        case AlmanacBuffType.Random:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.randomBuffs;
+                            break;
+                        case AlmanacBuffType.Curse:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.curseBuffs;
+                            break;
+                        case AlmanacBuffType.Rogue:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.rogueBuffs;
+                            break;
+                        case AlmanacBuffType.Combo:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.comboBuffs;
+                            break;
+                        case AlmanacBuffType.Tiny:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.tinyBuffs;
+                            break;
+                        case AlmanacBuffType.Zombie:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.zombieBuffs;
+                            break;
+                        case AlmanacBuffType.Shooting:
+                            obj = Il2CppExtensions.BoxEnumToIl2Object<AdvBuff>(id);
+                            list = __instance.shootingBuffs;
+                            break;
+                    }
+                    if (!Lawnf.HasTravelBuff(obj) && !__instance.editMode && AlmanacBuffMenu.lookBuff) continue;
+                    var cardInfo = new AlmanacBuffMenu.CardInfo
+                    {
+                        buff = obj,
+                        description = TravelMgr.Instance.GetText(obj),
+                        plantType = icon
+                    };
+                    __instance.CreateCardUI(cardInfo, list);
+                }
+            }
+        }
+
+        [HarmonyPatch(nameof(AlmanacBuffMenu.OnCardClick))]
+        [HarmonyPostfix]
+        public static void PostOnCardClick(AlmanacBuffMenu __instance, AlmanacCardUI card)
+        {
+            AlmanacBuffMenu.CardInfo cardInfo = __instance.cardInfos[card];
+            var (type, id) = TravelExtensions.GetTypeAndID(cardInfo.buff);
+            if (CustomCore.CustomBuffsBg.ContainsKey((type, id)))
+            {
+                if (CustomCore.CustomBuffsBg[(type, id)].BgType == BuffBgType.Day)
+                    __instance.windowBackground.sprite = __instance.day;
+                else if (CustomCore.CustomBuffsBg[(type, id)].BgType == BuffBgType.Night)
+                    __instance.windowBackground.sprite = __instance.night;
+                else if (CustomCore.CustomBuffsBg[(type, id)].BgType == BuffBgType.Night)
+                    __instance.windowBackground.sprite = __instance.pool;
+            }
         }
     }
 
@@ -2198,14 +1921,11 @@ namespace CustomizeLib.BepInEx
         [HarmonyPostfix]
         public static void GetDebuffPool(ref Il2CppSystem.Collections.Generic.List<TravelDebuff> __result)
         {
-            Debug.Log("pool");
             foreach (var (key, value) in CustomCore.CustomDebuffs)
             {
-                Debug.Log($"{value.Item3.Invoke()}, {!TravelMgr.Instance.data.travelDebuffs.Contains((TravelDebuff)key)}");
                 if (value.Item3.Invoke() && !TravelMgr.Instance.data.travelDebuffs.Contains((TravelDebuff)key))
                 {
                     __result.Add((TravelDebuff)key);
-                    Debug.Log("run");
                 }
             }
         }
@@ -2233,6 +1953,27 @@ namespace CustomizeLib.BepInEx
                 {
                     __instance.Debuffs.Add((TravelDebuff)key);
                 }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(TravelHelper))]
+    public static class TravelHelperPatch
+    {
+        [HarmonyPatch(nameof(TravelHelper.GetAllUltimatePlantTypes))]
+        [HarmonyPostfix]
+        public static void PostGetAllUltimatePlantTypes(ref Il2CppSystem.Collections.Generic.List<PlantType> __result, ref bool isStrongUltimate)
+        {
+            if (isStrongUltimate)
+            {
+                foreach (var (pt, _) in CustomCore.CustomStrongUltimatePlants)
+                    __result.Add(pt);
+            }
+            else
+            {
+                foreach (var pt in CustomCore.CustomUltimatePlants)
+                    if (!CustomCore.CustomStrongUltimatePlants.ContainsKey(pt)) // 排除强究
+                        __result.Add(pt);
             }
         }
     }
@@ -3108,6 +2849,8 @@ namespace CustomizeLib.BepInEx
                     UnityEngine.Object.Destroy(pageSample);
                     UnityEngine.Object.Destroy(levelSample);
                 }
+                //foreach (var item in CustomCore.CustomLevels)
+                //    LevelManager.registry.RegisterPredefinedLevel(item.LevelData);
             }
         }
 
@@ -3155,9 +2898,9 @@ namespace CustomizeLib.BepInEx
             board.seedPool = levelData.SeedRainPlantTypes().ToIl2CppList();
             levelData.PostBoard(board);
             // 加载并实例化地图
-            MapData_cs.GetMap(levelData.SceneType, board);
+            var map = MapData_cs.GetMap(levelData.SceneType, board);
 
-            InitZombieList.InitZombie((LevelType)levelType, levelNumber);
+            InitZombieList.InitZombie(levelType, levelNumber);
 
             // 播放音乐并开始游戏
             GameAPP.Instance.PlayMusic(MusicType.SelectCard);
@@ -3170,6 +2913,23 @@ namespace CustomizeLib.BepInEx
             foreach (var p in levelData.PrePlants())
             {
                 CreatePlant.Instance.SetPlant(p.Item1, p.Item2, p.Item3);
+            }
+
+            for (int i = 0; i < board.rowNum; i++)
+            {
+                var floor = map.transform.FindChild($"floor{i}");
+                board.plane.Add(floor);
+                if (board.boardTag.isRoof)
+                {
+                    var floor_roof = new GameObject("floor_roof");
+                    floor_roof.transform.SetParent(floor);
+                    floor_roof.transform.localPosition = new Vector3(0f, 0f, 0f);
+                }
+                var iceRoad = Instantiate(GamePrefabs.IceRoad, new Vector3(19.7f, 0.8f, 0f), Quaternion.identity, floor).GetComponent<IceRoad>();
+                iceRoad.theRow = i;
+                iceRoad.roadStartX = iceRoad.x = 19.7f;
+                iceRoad.transform.localPosition = new Vector3(19.7f, 0.8f, 0f);
+                board.iceRoads.Add(iceRoad);
             }
             return false;
         }
@@ -3297,6 +3057,68 @@ namespace CustomizeLib.BepInEx
             if (!Lawnf.IsTravelLevel(levelType, levelNumber))
                 return;
             SaveInfo.Instance.SetData("endlessID", id);
+        }
+    }
+
+    [HarmonyPatch(typeof(AlmanacZombieMenu))]
+    public class AlmanacZombieMenuPatch
+    {
+        [HarmonyPatch(nameof(AlmanacZombieMenu.Start))]
+        [HarmonyPostfix]
+        public static void Postfix(AlmanacZombieMenu __instance)
+        {
+            if (__instance.transform.Find("LoolAll_Other") == null)
+            {
+                var customButton = Instantiate(__instance.transform.Find("LookAll_1").gameObject, __instance.transform);
+                customButton.transform.localPosition = new Vector2(10, 0);
+                customButton.name = "LoolAll_Other";
+                customButton.transform.localPosition = new Vector2(440, -499);
+                // 修改按钮文本
+                foreach (var text in customButton.GetComponentsInChildren<TextMeshProUGUI>())
+                {
+                    if (text != null)
+                        text.text = "二创僵尸";
+                }
+
+                var uiButton = customButton.GetComponent<UIButton>();
+                UnityEvent unityEvent = new UnityEvent();
+                Action action = () =>
+                {
+                    Func<ZombieType, bool> func = (zt) => !Enum.IsDefined<ZombieType>(zt);
+                    __instance.ShowZombieCards(func);
+                };
+                unityEvent.AddListener(action);
+                customButton.GetComponent<UIButton>().clickEvent = unityEvent;
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Entity))]
+    public static class EntityPatch
+    {
+        [HarmonyPatch(nameof(Entity.GetSpriteRenderers))]
+        [HarmonyPrefix]
+        public static bool PreGetSpriteRenderers(Entity __instance)
+        {
+            if (__instance.TryGetComponent<SaveMaterial>(out var _))
+            {
+                foreach (var child in Core.Lawnf.GetChilds(__instance.transform))
+                    if (child.TryGetComponent<SpriteRenderer>(out var renderer) && child.name != "Shadow")
+                        __instance.spriteRenderers.Add(renderer);
+                return false;
+            }
+            return true;
+        }
+    }
+
+    [HarmonyPatch(typeof(PatchMgr))]
+    public static class PatchMgrPatch
+    {
+        [HarmonyPatch(nameof(PatchMgr.ShowCards))]
+        [HarmonyFinalizer]
+        public static Exception ShowFinalizer()
+        {
+            return null;
         }
     }
 
@@ -3440,18 +3262,26 @@ namespace CustomizeLib.BepInEx
             {
                 var list = CustomCore.CustomBulletSkinReplace[(almanacType, index)];
                 foreach (var (origin, replace) in list)
-                    CustomCore.CustomBulletsSkinID[(almanacType, origin)] = replace;
-            }
-            foreach (var ((pt, i), list) in CustomCore.CustomBulletSkinReplace)
-            {
-                foreach (var (ori, _) in list)
                 {
-                    if (GameAPP.resourcesManager.plantSkinDic.ContainsKey(pt) && GameAPP.resourcesManager.plantSkinDic[pt] != i)
-                    {
-                        CustomCore.CustomBulletsSkinID[(almanacType, ori)] = new List<BulletType> { ori };
-                    }
+                    foreach (var item in replace)
+                    CustomCore.CustomBulletsSkinID[(almanacType, origin, GameAPP.resourcesManager.plantSkinDic[almanacType])] = replace;
                 }
             }
+            //foreach (var ((pt, i), list) in CustomCore.CustomBulletSkinReplace)
+            //{
+            //    bool shouldReset = GameAPP.resourcesManager.plantSkinDic.ContainsKey(pt) && GameAPP.resourcesManager.plantSkinDic[pt] != i;
+            //    if (!resetDic.TryGetValue(pt, out var val))
+            //        resetDic[pt] = shouldReset;
+            //    else
+            //        resetDic[pt] = val && shouldReset;
+            //    if (!resetDic[pt])
+            //}
+            //foreach (var ((pt, _), list) in CustomCore.CustomBulletSkinReplace)
+            //{
+            //    if (resetDic.TryGetValue(pt, out var val) && val)
+            //        foreach (var (ori, _) in list)
+            //            CustomCore.CustomBulletsSkinID[(almanacType, ori)] = new List<BulletType> { ori };
+            //}
             SetEnableSkin();
         }
 
@@ -3463,10 +3293,8 @@ namespace CustomizeLib.BepInEx
                 {
                     if (GameAPP.resourcesManager.plantSkinDic.ContainsKey(pt))
                     {
-                        if (GameAPP.resourcesManager.plantSkinDic[pt] != i)
-                            CustomCore.CustomBulletsSkinID[(pt, ori)] = new List<BulletType> { ori };
-                        else
-                            CustomCore.CustomBulletsSkinID[(pt, ori)] = rep;
+                        if (GameAPP.resourcesManager.plantSkinDic[pt] == i)
+                            CustomCore.CustomBulletsSkinID[(pt, ori, GameAPP.resourcesManager.plantSkinDic[pt])] = rep;
                     }
                 }
             }
@@ -3602,22 +3430,20 @@ namespace CustomizeLib.BepInEx
                                         if (!CustomCore.CustomBulletSkinReplace.ContainsKey((plantType, index)))
                                             CustomCore.CustomBulletSkinReplace.Add((plantType, index), new Dictionary<BulletType, List<BulletType>>
                                         {
-                                            { bulletID, CustomCore.CustomBulletsSkinID[(plantType, bulletID)] }
+                                            { bulletID, CustomCore.CustomBulletsSkinID[(plantType, bulletID, index)] }
                                         });
                                         else
                                         {
                                             if (CustomCore.CustomBulletSkinReplace[(plantType, index)].ContainsKey(bulletID))
                                             {
-                                                for (int i = CustomCore.CustomBulletsSkinID[(plantType, bulletID)].Count - 1; i >= 0; i--)
+                                                for (int i = CustomCore.CustomBulletsSkinID[(plantType, bulletID, index)].Count - 1; i >= 0; i--)
                                                 {
-                                                    var itb = CustomCore.CustomBulletsSkinID[(plantType, bulletID)][i];
+                                                    var itb = CustomCore.CustomBulletsSkinID[(plantType, bulletID, index)][i];
                                                     CustomCore.CustomBulletSkinReplace[(plantType, index)][bulletID].Add(itb);
                                                 }
                                             }
                                             else
-                                            {
-                                                CustomCore.CustomBulletSkinReplace[(plantType, index)].Add(bulletID, CustomCore.CustomBulletsSkinID[(plantType, bulletID)]);
-                                            }
+                                                CustomCore.CustomBulletSkinReplace[(plantType, index)].Add(bulletID, CustomCore.CustomBulletsSkinID[(plantType, bulletID, index)]);
                                         }
                                     }
                                 }
@@ -3641,6 +3467,11 @@ namespace CustomizeLib.BepInEx
                             var plantType = (PlantType)id;
                             if (CustomCore.CustomPlantsSkinActive.ContainsKey(plantType) && CustomCore.CustomPlantsSkinActive[plantType]) continue;
                             var ab = AssetBundle.LoadFromFile(path);
+
+                            var json = new SkinConfig();
+                            if (ab.TryGetAsset<TextAsset>("config", out var text))
+                                json = JsonSerializer.Deserialize<SkinConfig>(text.text);
+
                             CustomCore.LoadedSkinAssetBundle.Add(ab);
                             GameObject? prefab = null;
                             GameObject? preview = null;
@@ -3657,6 +3488,13 @@ namespace CustomizeLib.BepInEx
                                 preview.tag = "Preview";
                             }
                             catch { continue; }
+
+                            if (json.SaveMaterial)
+                            {
+                                prefab.SetSaveMaterial();
+                                preview.SetSaveMaterial();
+                            }
+
                             try
                             {
                                 var bulletRegex = new Regex(@"Bullet_(\d+)");
@@ -3818,6 +3656,7 @@ namespace CustomizeLib.BepInEx
                                         }
                                         catch (Exception) { }
                                     }
+                                    OnChangeSkin(key, value);
                                 }
                                 else
                                     continue;
@@ -3849,16 +3688,20 @@ namespace CustomizeLib.BepInEx
         }
         #endregion
         
-
         public static void ShowCustomCards(MonoBehaviour mono)
         {
-            mono.StartCoroutine(Show());
+            mono.StartCoroutine(ShowCardCoroutine());
         }
 
-        private static IEnumerator Show()
+        public static IEnumerator ShowCardCoroutine()
         {
             // 1.5s等待初始化
             yield return new WaitForSeconds(1.5f);
+            ShowCards();
+        }
+
+        public static void ShowCards()
+        {
             GameObject? MyColorfulCard = Utils.GetColorfulCardGameObject();
             List<PlantType> cardsOnSeedBank = new List<PlantType>();
             Dictionary<PlantType, List<bool>> cardsOnSeedBankExtra = new Dictionary<PlantType, List<bool>>();
@@ -3868,7 +3711,7 @@ namespace CustomizeLib.BepInEx
             else if (Board.Instance != null && Board.Instance.boardTag.isIZ)
                 seedGroup = InGameUI_IZ.Instance.transform.FindChild("SeedBank/SeedGroup").gameObject;
             if (seedGroup == null)
-                yield break;
+                return;
             for (int i = 0; i < seedGroup.transform.childCount; i++)
             {
                 GameObject seed = seedGroup.transform.GetChild(i).gameObject;
@@ -3882,7 +3725,7 @@ namespace CustomizeLib.BepInEx
                 }
             }
             if (MyColorfulCard == null)
-                yield break;
+                return;
             var isIZ = Board.Instance.boardTag.isIZ;
             foreach (var (pt, (list, times)) in CustomCore.CustomCards)
             {
@@ -3944,7 +3787,7 @@ namespace CustomizeLib.BepInEx
 
             GameObject? MyNormalCard = Utils.GetNormalCardGameObject();
             if (MyNormalCard == null)
-                yield break;
+                return;
             foreach (var (pt, (list, times)) in CustomCore.CustomNormalCards)
             {
                 var repeat = isIZ ? times : times + 1;

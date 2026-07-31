@@ -41,7 +41,8 @@ namespace ZombieImitater.BepInEx
                 "②生成一个钻石模仿者</color>\n" +
                 "<color=#3D1400>特殊强化：</color><color=red>①<Boss>僵王博士：血量x100\n" +
                 "②<Boss>黄金僵王博士：血量x100\n" +
-                "③<Boss>黑橄榄大帅：血量x15</color>\n\n" +
+                "③<Boss>黑橄榄大帅：血量x15\n" +
+                "③<Boss>黑橄榄将军：血量x15</color>\n\n" +
                 "<color=#3D1400>僵尸模仿者曾蝉联“僵尸和我差几分”比赛的冠军，他在这方面的造诣，其他植物只能望其项背，“曾经有一场比赛，我遇到了一株植物，他的伪装术与我不分伯仲，裁判准备让我们并列第一，那个时候，我做了一件事，获得了比赛的第一，并且让他们失去了接着挑战我的勇气，那也是那个比赛的最后一届，”僵尸模仿者看着台下的植物，“我走到了赛场外，面对尸群，他们没有咬我。”</color>\n\n" +
                 "<color=#955300>价格：</color><color=red>-500</color>\n" +
                 "<color=#955300>冷却：</color><color=red>30秒</color>"); 
@@ -200,7 +201,7 @@ namespace ZombieImitater.BepInEx
                     zombie.theMaxHealth *= bossMulti;
                     zombie.SetData("ZombieImitater_SpawnByZombie", true);
                 }
-                if (type == ZombieType.HorseBoss)
+                if (type == ZombieType.HorseBoss || type == ZombieType.FootballBoss)
                 {
                     zombie.theHealth *= 15;
                     zombie.theMaxHealth *= 15;
@@ -294,29 +295,29 @@ namespace ZombieImitater.BepInEx
         }
     }
 
-    //[HarmonyPatch(typeof(ZombieBoss))]
-    //public static class ZombieBossStartPatch
-    //{
-    //    [HarmonyPatch(nameof(ZombieBoss.Start))]
-    //    [HarmonyPostfix]
-    //    public static void Postfix(ZombieBoss __instance)
-    //    {
-    //        {
-    //            var position = __instance.axis.transform.position;
-    //            position.y -= Lawnf.GetAllZombies().ToSystemList().Where(z => z.theZombieType == ZombieType.ZombieBoss || z.theZombieType == ZombieType.ZombieBoss2)
-    //                .ToList().Count * 0.4f;
-    //            __instance.healthText.transform.position = position;
-    //        }
-    //    }
+    [HarmonyPatch(typeof(ZombieBoss))]
+    public static class ZombieBossStartPatch
+    {
+        [HarmonyPatch(nameof(ZombieBoss.Start))]
+        [HarmonyPostfix]
+        public static void Postfix(ZombieBoss __instance)
+        {
+            {
+                var position = __instance.axis.transform.position;
+                position.y -= Lawnf.GetAllZombies().ToSystemList().Where(z => z.theZombieType == ZombieType.ZombieBoss || z.theZombieType == ZombieType.ZombieBoss2)
+                    .ToList().Count * 0.4f;
+                __instance.healthText.transform.position = position;
+            }
+        }
 
-    //    [HarmonyPatch(nameof(ZombieBoss.GetDamage))]
-    //    [HarmonyPostfix]
-    //    public static void PostGetDamage(ZombieBoss __instance, ref int __result)
-    //    {
-    //        if (__instance.GetData<bool>("ZombieImitater_SpawnByZombie"))
-    //        {
-    //            __result = Mathf.Min(__result, 5000);
-    //        }
-    //    }
-    //}
+        //[HarmonyPatch(nameof(ZombieBoss.GetDamage))]
+        //[HarmonyPostfix]
+        //public static void PostGetDamage(ZombieBoss __instance, ref int __result)
+        //{
+        //    if (__instance.GetData<bool>("ZombieImitater_SpawnByZombie"))
+        //    {
+        //        __result = Mathf.Min(__result, 5000);
+        //    }
+        //}
+    }
 }
